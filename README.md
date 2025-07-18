@@ -1,7 +1,11 @@
 AI Meeting Assistant
+
+
 An AI-powered web application built with Flask that allows users to upload meeting audio files, receive transcriptions, and gain valuable insights through AI analysis. The application is designed to create a searchable, intelligent knowledge base from your meeting content.
 
 Features
+
+
 Secure File Upload: Drag-and-drop or browse to upload meeting audio files (MP3, WAV, M4A, etc.).
 
 AI-Powered Transcription: Utilizes an AI service to transcribe audio files with high accuracy.
@@ -17,6 +21,8 @@ Cross-Meeting Insights: Discover recurring themes and patterns across multiple m
 Modern UI: A clean, responsive, and intuitive user interface built with Bootstrap.
 
 Tech Stack
+
+
 Backend: Python, Flask
 
 Frontend: HTML, Bootstrap, JavaScript
@@ -33,11 +39,11 @@ cd AI-Assistant
 
 Create and activate a virtual environment:
 
-# For Windows
+For Windows
 python -m venv venv
 venv\Scripts\activate
 
-# For macOS/Linux
+For macOS/Linux
 python3 -m venv venv
 source venv/bin/activate
 
