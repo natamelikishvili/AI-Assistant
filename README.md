@@ -1,9 +1,9 @@
-AI Meeting Assistant
+#AI Meeting Assistant
 
 
 An AI-powered web application built with Flask that allows users to upload meeting audio files, receive transcriptions, and gain valuable insights through AI analysis. The application is designed to create a searchable, intelligent knowledge base from your meeting content.
 
-Features
+#Features
 
 
 Secure File Upload: Drag-and-drop or browse to upload meeting audio files (MP3, WAV, M4A, etc.).
@@ -20,7 +20,7 @@ Cross-Meeting Insights: Discover recurring themes and patterns across multiple m
 
 Modern UI: A clean, responsive, and intuitive user interface built with Bootstrap.
 
-Tech Stack
+#Tech Stack
 
 
 Backend: Python, Flask
@@ -29,7 +29,7 @@ Frontend: HTML, Bootstrap, JavaScript
 
 Core Libraries: See requirements.txt for a full list of dependencies.
 
-Installation
+#Installation
 To set up and run this project locally, follow these steps:
 
 Clone the repository:
@@ -56,13 +56,13 @@ You will need an API key for the AI services used. Create a .env file in the roo
 
 OPENAI_API_KEY=your_api_key_here
 
-Usage
+#Usage
 Once the setup is complete, you can run the application with a single command:
 
 python app.py
 Navigate to http://127.0.0.1:5000 in your web browser to access the application.
 
-Workflow:
+#Workflow:
 Upload: Go to the "Upload" page and add a meeting audio file.
 
 Transcribe: From the meeting details page, start the transcription process.
