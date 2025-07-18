@@ -1,0 +1,6 @@
+.env
+uploads/
+meeting_assistant.db
+__pycache__/
+*.pyc
+.idea/

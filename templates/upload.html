@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Upload Meeting - Meeting Assistant{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="bg-white p-4 p-md-5 rounded-3 shadow-sm">
+            <div class="row">
+                <div class="col-lg-7 border-end-lg pe-lg-5">
+                    <h2 class="h3 text-dark mb-1"><i class="fas fa-cloud-upload-alt text-success"></i> Upload New Meeting</h2>
+                    <p class="text-muted mb-4">Add a new audio file to be transcribed and analyzed.</p>
+
+                    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                        <div class="mb-4">
+                            <label for="meeting_title" class="form-label fw-bold">Meeting Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="meeting_title" name="meeting_title" placeholder="e.g., Weekly Team Standup" required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="audio_file" class="form-label fw-bold">Audio File <span class="text-danger">*</span></label>
+                            <div class="upload-area text-center p-4 rounded-3" id="uploadArea">
+                                <i class="fas fa-file-audio fa-3x text-success mb-3"></i>
+                                <h5>Drag & Drop your audio file here</h5>
+                                <p class="text-muted mb-3">or click the button below to browse</p>
+                                <input type="file" class="d-none" id="audio_file" name="audio_file" accept=".mp3,.wav,.m4a,.mp4,.mpeg,.mpga,.webm" required />
+                                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('audio_file').click()">
+                                    <i class="fas fa-folder-open me-2"></i>Browse Files
+                                </button>
+                            </div>
+                             <div class="form-text mt-1">Supported formats: MP3, WAV, M4A, MP4, etc. (Max: 100MB)</div>
+                            <div id="fileInfo" class="mt-2 d-none">
+                                <div class="alert bg-success-subtle text-success-emphasis">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Selected:</strong> <span id="fileName"></span> (<span id="fileSize"></span>)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-upload me-2"></i>Upload Meeting
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-lg-5 ps-lg-5 mt-5 mt-lg-0">
+                    <h4 class="h5 text-dark"><i class="fas fa-info-circle"></i> Upload Guidelines</h4>
+                    <hr>
+
+                    <h6 class="fw-bold"><i class="fas fa-cogs text-success"></i> What Happens Next</h6>
+                    <ul class="list-unstyled text-muted small ps-3">
+                        <li class="mb-2"><i class="fas fa-server text-success me-2"></i>Your file is securely uploaded and stored.</li>
+                        <li class="mb-2"><i class="fas fa-robot text-success me-2"></i>Our AI transcribes the audio and identifies speakers.</li>
+                        <li class="mb-2"><i class="fas fa-database text-success me-2"></i>The content is added to your searchable knowledge base.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Custom styles for the upload area */
+.upload-area {
+    border: 2px dashed #a2b5a8; /* --secondary-green, but lighter */
+    transition: background-color 0.2s, border-color 0.2s;
+    background-color: #f4f7f5; /* --light-accent */
+}
+.upload-area.dragover {
+    background-color: #e8f5e8; /* Light green */
+    border-color: #2e4636; /* --primary-green */
+}
+.border-end-lg {
+    border-right: 1px solid #dee2e6 !important;
+}
+@media (max-width: 991.98px) {
+    .border-end-lg {
+        border-right: none !important;
+    }
+}
+</style>
+
+<script>
+// The original, functional JavaScript does not need to be changed.
+const uploadArea = document.getElementById("uploadArea");
+const fileInput = document.getElementById("audio_file");
+const fileInfo = document.getElementById("fileInfo");
+const fileName = document.getElementById("fileName");
+const fileSize = document.getElementById("fileSize");
+const submitBtn = document.getElementById("submitBtn");
+
+["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+    uploadArea.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+});
+
+["dragenter", "dragover"].forEach((eventName) => {
+    uploadArea.addEventListener(eventName, highlight, false);
+});
+
+["dragleave", "drop"].forEach((eventName) => {
+    uploadArea.addEventListener(eventName, unhighlight, false);
+});
+
+uploadArea.addEventListener("drop", handleDrop, false);
+fileInput.addEventListener("change", handleFileSelect, false);
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function highlight(e) {
+    uploadArea.classList.add("dragover");
+}
+
+function unhighlight(e) {
+    uploadArea.classList.remove("dragover");
+}
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        showFileInfo(files[0]);
+    }
+}
+
+function handleFileSelect(e) {
+    const files = e.target.files;
+    if (files.length > 0) {
+        showFileInfo(files[0]);
+    }
+}
+
+function showFileInfo(file) {
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    fileInfo.classList.remove("d-none");
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
+document.getElementById("uploadForm").addEventListener("submit", function (e) {
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Translations for {{ meeting.title }} - Meeting Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 text-dark"><i class="fas fa-language text-success"></i> Meeting Translations</h1>
+            <p class="text-muted mb-0">
+                For meeting: <strong>{{ meeting.title }}</strong>
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('view_meeting', meeting_id=meeting.id) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to Meeting
+            </a>
+        </div>
+    </div>
+
+    {% if translations_by_language %}
+    <div class="accordion" id="translationsAccordion">
+        {% for lang_key, lang_data in translations_by_language.items() %}
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="heading-{{ lang_key }}">
+                <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ lang_key }}">
+                    <div class="d-flex justify-content-between w-100 align-items-center me-3">
+                        <span>
+                            <i class="fas fa-globe me-2"></i>
+                            <strong>{{ lang_data.language_info.native_name }}</strong>
+                            <small class="text-muted ms-2">({{ lang_data.language_info.name }})</small>
+                        </span>
+                        <span class="badge bg-success-subtle text-success-emphasis rounded-pill">
+                            {{ lang_data.translations|length }} items translated
+                        </span>
+                    </div>
+                </button>
+            </h2>
+            <div id="collapse-{{ lang_key }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#translationsAccordion">
+                <div class="accordion-body">
+                    <div class="d-flex justify-content-end mb-3">
+                        <a href="{{ url_for('view_single_language_translation', meeting_id=meeting.id, target_language=lang_key) }}" class="btn btn-sm btn-outline-success me-2">
+                            <i class="fas fa-eye me-1"></i> View All in this Language
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteLanguageTranslations('{{ lang_key }}', '{{ lang_data.language_info.name }}')">
+                            <i class="fas fa-trash me-1"></i> Delete All
+                        </button>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        {% for translation in lang_data.translations %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                    {{ translation.content_type|replace('_', ' ')|title }}
+                                </span>
+                                <small class="text-muted">Translated on {{ translation.created_at[:10] }}</small>
+                            </div>
+                            <p class="text-muted small mb-0 fst-italic">
+                                "{{ translation.translated_text[:250] }}{% if translation.translated_text|length > 250 %}...{% endif %}"
+                            </p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-language fa-4x text-light-emphasis mb-4"></i>
+          <h3 class="text-muted">No Translations Found</h3>
+          <p class="text-muted mb-4">This meeting has not been translated yet. Go back to the meeting to start.</p>
+          <a href="{{ url_for('view_meeting', meeting_id=meeting.id) }}" class="btn btn-success">
+            <i class="fas fa-language me-2"></i>Translate Content
+          </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function deleteLanguageTranslations(languageKey, languageName) {
+    if (
+      !confirm(
+        `Are you sure you want to delete all ${languageName} translations for this meeting? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    // Note: The backend route for this functionality would need to be created.
+    // fetch(`/delete_translation/{{ meeting.id }}/${languageKey}`, { method: 'POST' }) ...
+    alert("Delete functionality has not been implemented in the backend yet.");
+  }
+</script>
+{% endblock %}

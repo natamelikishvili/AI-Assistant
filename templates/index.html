@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Meeting Assistant{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2 text-dark">Meeting Dashboard</h1>
+  <a href="{{ url_for('upload_meeting') }}" class="btn btn-success">
+    <i class="fas fa-plus me-2"></i>Upload New Meeting
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-3">
+    <h5 class="mb-0">All Meetings</h5>
+  </div>
+  <div class="card-body">
+    {% if meetings %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Meeting Title</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-center">Duration</th>
+            <th scope="col">Uploaded On</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for meeting in meetings %}
+          <tr>
+            <td>
+              <div class="fw-bold">{{ meeting.title }}</div>
+              <div class="small text-muted">{{ meeting.filename }}</div>
+            </td>
+            <td>
+              <span class="status-badge status-{{ meeting.status }}">
+                {% if meeting.status == 'uploaded' %}<i class="fas fa-cloud me-1"></i>Uploaded
+                {% elif meeting.status == 'processing' %}<i class="fas fa-spinner fa-spin me-1"></i>Processing
+                {% elif meeting.status == 'transcribed' %}<i class="fas fa-check me-1"></i>Transcribed
+                {% elif meeting.status == 'error' %}<i class="fas fa-exclamation-triangle me-1"></i>Error
+                {% endif %}
+              </span>
+            </td>
+            <td class="text-center">
+              {% if meeting.duration %} {{ "%.1f"|format(meeting.duration) }}s {% else %} -- {% endif %}
+            </td>
+            <td>{{ meeting.uploaded_at[:10] }}</td>
+            <td class="text-end">
+              <a href="{{ url_for('view_meeting', meeting_id=meeting.id) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-eye me-1"></i> View Details
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-microphone-slash fa-4x text-light-emphasis mb-4"></i>
+      <h3 class="text-muted">No meetings found</h3>
+      <p class="text-muted mb-4">Click below to upload your first meeting recording.</p>
+      <a href="{{ url_for('upload_meeting') }}" class="btn btn-success">
+        <i class="fas fa-cloud-upload-alt me-2"></i>Upload First Meeting
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="p-4 mb-4 bg-white rounded-3 shadow-sm">
+        <h3 class="text-dark"><i class="fas fa-search text-success"></i> Semantic Meeting Search</h3>
+        <p class="text-muted">Search for concepts, questions, or keywords across all transcribed meetings.</p>
+        <form method="POST" action="{{ url_for('search_meetings') }}">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-lg" name="query" placeholder="e.g., 'budget decisions for Q3' or 'who is responsible for the new marketing campaign?'" value="{{ query or '' }}" required />
+                <button class="btn btn-success" type="submit"><i class="fas fa-search me-2"></i>Search</button>
+            </div>
+        </form>
+    </div>
+
+    {% if query %}
+        <h2 class="h4 mb-1">Search Results for: <span class="text-success">"{{ query }}"</span></h2>
+
+        {% if results %}
+            <p class="text-muted mb-3">Found {{ results|length }} semantic matches.</p>
+            <div class="list-group">
+                {% for result in results %}
+                <a href="{{ url_for('view_meeting', meeting_id=result.meeting_id) }}" class="list-group-item list-group-item-action flex-column align-items-start mb-2 border shadow-sm">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ result.metadata.title }}</h5>
+                        <span class="badge bg-success-subtle text-success-emphasis rounded-pill">{{ "%.1f"|format(result.similarity * 100) }}% match</span>
+                    </div>
+                    <p class="mb-1 text-muted fst-italic">"...{{ result.text|striptags|truncate(250) }}..."</p>
+                    <small class="text-muted">Source: {{ result.chunk_type|replace('_', ' ')|title }}</small>
+                </a>
+                {% endfor %}
+            </div>
+
+        {% elif fallback_results %}
+            <p class="text-muted mb-3">Semantic search unavailable. Showing {{ fallback_results|length }} basic text matches.</p>
+            <div class="list-group">
+                {% for meeting in fallback_results %}
+                <a href="{{ url_for('view_meeting', meeting_id=meeting.id) }}" class="list-group-item list-group-item-action flex-column align-items-start mb-2 border shadow-sm">
+                    <h5 class="mb-1">{{ meeting.title }}</h5>
+                    {% if meeting.summary %}
+                    <p class="mb-1 text-muted fst-italic">"...{{ meeting.summary|striptags|truncate(250) }}..."</p>
+                    {% endif %}
+                    <small class="text-muted">Uploaded on {{ meeting.uploaded_at[:10] }}</small>
+                </a>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search-minus fa-3x text-light-emphasis mb-3"></i>
+                <p class="text-muted">No results found for "{{ query }}". Try different keywords.</p>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-lightbulb text-success"></i> Semantic Search Tips</h5>
+                <p class="text-muted">Use natural language to find what you're looking for. Here are some ideas:</p>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Search for concepts:</strong> "action items from last week"</li>
+                    <li class="list-group-item"><strong>Ask questions:</strong> "what were the main challenges discussed about Project Phoenix?"</li>
+                    <li class="list-group-item"><strong>Find patterns:</strong> "discussions about budget", "all project updates"</li>
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

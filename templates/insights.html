@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Cross-Meeting Insights{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h2 text-dark"><i class="fas fa-chart-line text-success"></i> Cross-Meeting Insights</h1>
+    <p class="text-muted mb-0">Discover patterns and themes across all your meetings.</p>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+  </a>
+</div>
+
+
+{% if insights %}
+<div class="row g-3 mb-4">
+  <div class="col">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex justify-content-center align-items-center">
+        <i class="fas fa-file-alt fa-2x text-success opacity-75"></i>
+        <div class="ms-3 text-center">
+          <h4 class="mb-0 fw-bold">{{ meetings|length }}</h4>
+          <p class="mb-0 text-muted small">Meetings Analyzed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex justify-content-center align-items-center">
+        <i class="fas fa-lightbulb fa-2x text-success opacity-75"></i>
+        <div class="ms-3 text-center">
+          <h4 class="mb-0 fw-bold">{{ insights|length }}</h4>
+          <p class="mb-0 text-muted small">Themes Discovered</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card border-0 shadow-sm">
+      {% set total_connections = insights.values() | map('length') | sum %}
+      <div class="card-body d-flex justify-content-center align-items-center">
+        <i class="fas fa-link fa-2x text-success opacity-75"></i>
+        <div class="ms-3 text-center">
+          <h4 class="mb-0 fw-bold">{{ total_connections }}</h4>
+          <p class="mb-0 text-muted small">Meeting Connections</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+     {% set avg_score = insights.values() | map('map', attribute='total_similarity') | map('list') | map('sum') | sum / total_connections if total_connections > 0 else 0 %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex justify-content-center align-items-center">
+        <i class="fas fa-percentage fa-2x text-success opacity-75"></i>
+        <div class="ms-3 text-center">
+          <h4 class="mb-0 fw-bold">{{ "%.0f"|format(avg_score * 100) }}%</h4>
+          <p class="mb-0 text-muted small">Avg. Relevance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ul class="nav nav-tabs nav-pills" id="insightsTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="themes-tab" data-bs-toggle="tab" data-bs-target="#themes-tab-pane" type="button" role="tab"><i class="fas fa-lightbulb me-1"></i> Thematic Insights</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-tab-pane" type="button" role="tab"><i class="fas fa-network-wired me-1"></i> Relationship Network</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-tab-pane" type="button" role="tab"><i class="fas fa-robot me-1"></i> AI Recommendations</button>
+  </li>
+</ul>
+
+<div class="tab-content" id="insightsTabContent">
+  <div class="tab-pane fade show active" id="themes-tab-pane" role="tabpanel">
+    <div class="card border-top-0 rounded-0 rounded-bottom">
+      <div class="card-body">
+        <div class="row">
+          {% for theme, theme_insights in insights.items() %} {% if theme_insights %}
+          <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-fw {% if 'action' in theme.lower() %}fa-tasks{% elif 'decision' in theme.lower() %}fa-gavel{% elif 'challenge' in theme.lower() %}fa-exclamation-triangle{% else %}fa-lightbulb{% endif %} text-success me-2"></i>{{ theme|title }}</h5></div>
+              <div class="card-body">
+                {% for insight in theme_insights[:3] %}
+                <div class="mb-3 border-bottom pb-2">
+                  <h6><a href="{{ url_for('view_meeting', meeting_id=insight.meeting_id) }}" class="text-decoration-none">{{ insight.title }}</a></h6>
+                  <small class="text-muted">Relevance: {{ "%.1f"|format(insight.total_similarity * 100) }}% | {{ insight.relevant_chunks|length }} relevant sections</small>
+                  {% for chunk in insight.relevant_chunks[:1] %}<blockquote class="blockquote blockquote-sm bg-light p-2 rounded mt-2 mb-0"><small>"{{ chunk.text|truncate(150) }}"</small></blockquote>{% endfor %}
+                </div>
+                {% endfor %}
+                {% if theme_insights|length > 3 %}<small class="text-muted">+{{ theme_insights|length - 3 }} more meetings with this theme.</small>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %} {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="network-tab-pane" role="tabpanel">
+    <div class="card border-top-0 rounded-0 rounded-bottom">
+      <div class="card-body">
+        <p class="text-muted">Explore how your meetings are connected through common themes.</p>
+        <ul class="list-group">
+          {% for meeting_id, meeting in meetings.items() %} {% if meeting.status == 'transcribed' %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-1">{{ meeting.title }}</h6>
+                <a href="{{ url_for('similar_meetings', meeting_id=meeting.id) }}" class="btn btn-sm btn-outline-success">View Connections</a>
+            </div>
+            <small class="text-muted">Connected via themes:
+                {% for theme, theme_insights in insights.items() if meeting.id in theme_insights|map(attribute='meeting_id')|list %}
+                    <span class="badge bg-success-subtle text-success-emphasis">{{ theme|title }}</span>
+                {% endfor %}
+            </small>
+          </li>
+          {% endif %} {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="ai-tab-pane" role="tabpanel">
+    <div class="card border-top-0 rounded-0 rounded-bottom">
+      <div class="card-body">
+         <div class="p-3 mb-4 bg-success-subtle text-success-emphasis border border-success-subtle rounded">
+          <i class="fas fa-info-circle me-2"></i>AI-generated suggestions based on recurring patterns in your meetings.
+        </div>
+        {% if insights['action items and follow-ups'] or insights['key decisions and outcomes'] or insights['challenges and problems discussed'] %}
+          <div class="row">
+              {% if insights['action items and follow-ups'] %}
+              <div class="col-md-6 mb-3">
+                  <div class="p-3 border rounded h-100">
+                      <h5><i class="fas fa-check-circle text-success me-2"></i>Action Item Tracking</h5>
+                      <p class="text-muted"><strong>{{ insights['action items and follow-ups']|length }}</strong> meetings contain action items. Consider creating a centralized tracker to ensure completion.</p>
+                  </div>
+              </div>
+              {% endif %}
+              {% if insights['key decisions and outcomes'] %}
+              <div class="col-md-6 mb-3">
+                  <div class="p-3 border rounded h-100">
+                      <h5><i class="fas fa-gavel text-success me-2"></i>Decision Documentation</h5>
+                      <p class="text-muted"><strong>{{ insights['key decisions and outcomes']|length }}</strong> meetings recorded key decisions. Ensure these are clearly documented and communicated to all stakeholders.</p>
+                  </div>
+              </div>
+              {% endif %}
+              {% if insights['challenges and problems discussed'] %}
+              <div class="col-md-6 mb-3">
+                  <div class="p-3 border rounded h-100">
+                      <h5><i class="fas fa-exclamation-triangle text-success me-2"></i>Challenge Resolution</h5>
+                      <p class="text-muted"><strong>{{ insights['challenges and problems discussed']|length }}</strong> meetings discussed challenges. Review these for recurring issues that may need systematic solutions.</p>
+                  </div>
+              </div>
+              {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% else %}
+<div class="text-center py-5 card border-0 shadow-sm mt-4">
+  <div class="card-body">
+    <i class="fas fa-info-circle fa-4x text-light-emphasis mb-4"></i>
+    <h3 class="text-muted">No insights available yet</h3>
+    <p class="text-muted mx-auto" style="max-width: 600px;">To generate cross-meeting insights, please ensure you have multiple transcribed meetings. The system requires at least two completed meetings to find connections.</p>
+    <div class="mt-4">
+      <a href="{{ url_for('upload_meeting') }}" class="btn btn-success">
+        <i class="fas fa-cloud-upload-alt me-2"></i>Upload More Meetings
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

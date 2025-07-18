@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Search Translations - Meeting Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="p-4 p-md-5 mb-4 bg-white rounded-3 shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="h2 text-dark"><i class="fas fa-search text-success"></i> Search Translations</h1>
+                <p class="text-muted mb-4 mb-lg-0">
+                    Find specific terms or phrases across all translated meeting content.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                 <form method="POST" action="{{ url_for('search_translations') }}" class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-lg" id="query" name="query" placeholder="Enter search terms..." required />
+                    <select class="form-select form-select-lg w-auto" id="language" name="language">
+                        <option value="">All Languages</option>
+                        {% for key, lang in supported_languages.items() %}
+                        <option value="{{ key }}">{{ lang.code.upper() }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs nav-pills" id="infoTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tips-tab" data-bs-toggle="tab" data-bs-target="#tips-pane" type="button" role="tab">
+          <i class="fas fa-lightbulb me-1"></i> Search Tips
+        </button>
+      </li>
+      {% if supported_languages %}
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="languages-tab" data-bs-toggle="tab" data-bs-target="#languages-pane" type="button" role="tab">
+          <i class="fas fa-globe-americas me-1"></i> Supported Languages
+        </button>
+      </li>
+      {% endif %}
+    </ul>
+
+    <div class="tab-content" id="infoTabContent">
+        <div class="tab-pane fade show active" id="tips-pane" role="tabpanel">
+            <div class="card border-top-0 rounded-0 rounded-bottom">
+                <div class="card-body">
+                    <p class="text-muted">Use the form above to get started. Here are some tips for effective searching:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>Use specific keywords for better results.</li>
+                        <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>Search works across all content types (summaries, action items, etc.).</li>
+                        <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>Filter by a specific language for more targeted results.</li>
+                        <li class="list-group-item"><i class="fas fa-check text-success me-2"></i>Results will provide context from the original meeting.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if supported_languages %}
+        <div class="tab-pane fade" id="languages-pane" role="tabpanel">
+             <div class="card border-top-0 rounded-0 rounded-bottom">
+                <div class="card-body">
+                    <div class="row">
+                        {% for key, lang in supported_languages.items() %}
+                        <div class="col-md-4 col-lg-3 mb-3">
+                            <div class="p-2 border rounded">
+                                <strong class="text-dark">{{ lang.native_name }}</strong>
+                                <br/>
+                                <small class="text-muted">{{ lang.name }} ({{ lang.code }})</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Auto-focus search input on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("query").focus();
+  });
+
+  // Optional: Handle Enter key in search input for better UX
+  document.getElementById("query").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent default form submission if needed
+      this.closest("form").submit();
+    }
+  });
+</script>
+{% endblock %}

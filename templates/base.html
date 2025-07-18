@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Meeting Assistant{% endblock %}</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      /* --- Green Color Palette --- */
+      :root {
+        --primary-green: #2e4636; /* Dark forest green */
+        --secondary-green: #4a5d54; /* Muted sage for accents */
+        --light-accent: #f4f7f5; /* Very light page background */
+        --sidebar-bg: #ffffff;
+        --sidebar-width: 280px;
+        --text-dark: #343a40;
+        --text-light: #f8f9fa;
+      }
+
+      body {
+        background-color: var(--light-accent);
+        color: var(--text-dark);
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      /* --- Main Layout: Sidebar + Content --- */
+      .page-wrapper {
+        display: flex;
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      /* --- Sidebar (Offcanvas) --- */
+      .sidebar {
+        width: var(--sidebar-width);
+        background-color: var(--sidebar-bg);
+        border-right: 1px solid #dee2e6;
+        transition: margin-left 0.3s;
+      }
+
+      .sidebar .sidebar-header {
+        padding: 1.5rem 1.5rem 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-green);
+      }
+
+      .sidebar .nav-link {
+        color: var(--secondary-green);
+        font-weight: 500;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar .nav-link .fa-fw {
+        margin-right: 1rem;
+        width: 20px; /* Ensures icons are aligned */
+        text-align: center;
+      }
+
+      .sidebar .nav-link:hover {
+        background-color: var(--light-accent);
+        color: var(--primary-green);
+        border-left-color: var(--primary-green);
+      }
+
+      .sidebar .nav-link.active {
+        color: var(--primary-green);
+        background-color: #e8f5e8;
+        border-left-color: var(--primary-green);
+        font-weight: 600;
+      }
+
+      /* --- Top Bar & Content Area --- */
+      .content-wrapper {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .top-bar {
+        background-color: #ffffff;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        background-color: var(--primary-green);
+        color: var(--text-light);
+      }
+
+      .nav-pills .nav-link:not(.active) {
+          color: var(--secondary-green);
+      }
+
+      .nav-pills .nav-link:not(.active):hover {
+          background-color: #e8f5e8;
+      }
+
+      main {
+        flex-grow: 1; /* Ensures main content takes available space */
+      }
+
+      .footer-custom {
+        background-color: #ffffff;
+        color: #6c757d;
+        border-top: 1px solid #dee2e6;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+      }
+
+      /* --- Other styles from previous design --- */
+      /* Card & Element Styling */
+      .meeting-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+      }
+      .meeting-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+      }
+
+    </style>
+  </head>
+  <body>
+    <header class="top-bar d-lg-none sticky-top">
+      <div class="container-fluid d-flex justify-content-between align-items-center p-3">
+        <a class="navbar-brand fw-bold text-dark" href="{{ url_for('index') }}">
+          <i class="fas fa-microphone-alt text-success"></i> Meeting Assistant
+        </a>
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="page-wrapper">
+      <aside class="offcanvas-lg offcanvas-start sidebar" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+        <div class="offcanvas-header d-lg-none">
+          <h5 class="offcanvas-title" id="sidebarLabel">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column p-0">
+          <div class="sidebar-header d-none d-lg-block">
+             <i class="fas fa-microphone-alt text-success"></i> Meeting Assistant
+          </div>
+          <nav class="nav flex-column">
+             <span class="px-4 py-2 text-muted small text-uppercase">Navigation</span>
+             <a class="nav-link" href="{{ url_for('index') }}"><i class="fas fa-home fa-fw"></i> Home</a>
+             <a class="nav-link" href="{{ url_for('upload_meeting') }}"><i class="fas fa-cloud-upload-alt fa-fw"></i> Upload New</a>
+
+             <span class="px-4 py-2 mt-3 text-muted small text-uppercase">Analysis</span>
+             <a class="nav-link" href="{{ url_for('search_meetings') }}"><i class="fas fa-search fa-fw"></i> Search Meetings</a>
+             <a class="nav-link" href="{{ url_for('search_translations') }}"><i class="fas fa-language fa-fw"></i> Translations</a>
+             <a class="nav-link" href="{{ url_for('cross_meeting_insights') }}"><i class="fas fa-chart-line fa-fw"></i> Global Insights</a>
+             <a class="nav-link" href="{{ url_for('visual_gallery') }}"><i class="fas fa-images fa-fw"></i> Visual Gallery</a>
+          </nav>
+
+        </div>
+      </aside>
+
+      <div class="content-wrapper">
+        <main class="container-fluid p-4">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category|default('info') }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          {% block content %}{% endblock %}
+        </main>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Simple script to add 'active' class to the current nav link
+      document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll('.sidebar .nav-link');
+        links.forEach(link => {
+          if (link.href === window.location.href) {
+            link.classList.add('active');
+          }
+        });
+      });
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
